@@ -120,7 +120,12 @@ router.get('/me', async (req, res) => {
     const user = await User.findById(decoded.userId).select('-passwordHash -password');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.json(user);
+    // Always return both id and _id so client AuthContext can normalize properly
+    res.json({
+      ...user.toObject(),
+      id: user._id.toString(),
+      _id: user._id.toString(),
+    });
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });
   }

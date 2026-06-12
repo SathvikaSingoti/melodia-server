@@ -65,10 +65,10 @@ exports.getUserPlaylists = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = (req.user.id || req.user._id).toString();
     
     // Only allow users to update their own profile
-    if (userId !== req.params.id) {
+    if (userId !== req.params.id.toString()) {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
