@@ -55,7 +55,14 @@ exports.unlikeSong = async (req, res) => {
 exports.getUserPlaylists = async (req, res) => {
   try {
     const userId = req.user.id;
-    const playlists = await Playlist.find({ userId: userId }).populate('songs');
+    const playlists = await Playlist.find({ userId: userId }).populate('songs').lean();
+    playlists.forEach(p => {
+      if (p.songs) {
+        p.songs = p.songs.filter((song, index, self) =>
+          index === self.findIndex((t) => t._id.toString() === song._id.toString())
+        );
+      }
+    });
     res.json(playlists);
   } catch (error) {
     console.error('Error fetching playlists:', error);

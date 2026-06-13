@@ -77,7 +77,13 @@ exports.updatePlaylist = async (req, res) => {
       id,
       { name },
       { new: true }
-    ).populate('songs');
+    ).populate('songs').lean();
+    
+    if (playlist && playlist.songs) {
+      playlist.songs = playlist.songs.filter((song, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === song._id.toString())
+      );
+    }
     
     res.json(playlist);
   } catch (error) {
@@ -94,7 +100,14 @@ exports.addSongToPlaylist = async (req, res) => {
       id,
       { $addToSet: { songs: songId } },
       { new: true }
-    ).populate('songs');
+    ).populate('songs').lean();
+    
+    if (playlist && playlist.songs) {
+      playlist.songs = playlist.songs.filter((song, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === song._id.toString())
+      );
+    }
+    
     res.json(playlist);
   } catch (error) {
     console.error('Error adding song to playlist:', error);
@@ -109,7 +122,14 @@ exports.removeSongFromPlaylist = async (req, res) => {
       id,
       { $pull: { songs: songId } },
       { new: true }
-    ).populate('songs');
+    ).populate('songs').lean();
+    
+    if (playlist && playlist.songs) {
+      playlist.songs = playlist.songs.filter((song, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === song._id.toString())
+      );
+    }
+    
     res.json(playlist);
   } catch (error) {
     console.error('Error removing song from playlist:', error);

@@ -5,6 +5,7 @@ const Song = require('../models/Song');
 
 exports.generatePlaylist = async (req, res) => {
   try {
+    console.log('GEMINI KEY:', process.env.GEMINI_API_KEY ? 'loaded' : 'MISSING');
     const userId = req.user.id;
     
     const userPrompt = req.body.prompt;
@@ -70,15 +71,16 @@ exports.generatePlaylist = async (req, res) => {
       res.status(201).json(newPlaylist);
     } catch (fallbackError) {
       console.error('Fallback generation failed:', fallbackError.message || fallbackError);
-      res.status(500).json({ message: 'Failed to generate playlist and fallback failed: ' + (error.message || error.toString()) });
+      res.status(500).json({ error: 'Failed to generate playlist and fallback failed: ' + (error.message || error.toString()) });
     }
   }
 };
 
 exports.startRadio = async (req, res) => {
   try {
+    console.log('GEMINI KEY:', process.env.GEMINI_API_KEY ? 'loaded' : 'MISSING');
     const { songId } = req.body;
-    if (!songId) return res.status(400).json({ message: 'Song ID is required' });
+    if (!songId) return res.status(400).json({ error: 'Song ID is required' });
 
     const seedSong = await Song.findById(songId);
     if (!seedSong) return res.status(404).json({ message: 'Song not found' });
@@ -134,7 +136,7 @@ Pick 10 songs that fit the same vibe. Return ONLY a JSON array of song IDs. Do n
       res.json(fallbackSongs);
     } catch (fallbackError) {
       console.error('Fallback radio failed:', fallbackError.message || fallbackError);
-      res.status(500).json({ message: 'Failed to generate radio queue: ' + (error.message || error.toString()) });
+      res.status(500).json({ error: 'Failed to generate radio queue: ' + (error.message || error.toString()) });
     }
   }
 };
