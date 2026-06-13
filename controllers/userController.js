@@ -172,8 +172,14 @@ exports.getStats = async (req, res) => {
 
     const { period } = req.query; // week, month, all
     
+    const userDoc = await User.findById(userId);
+    const userCreatedAt = userDoc && userDoc.createdAt ? userDoc.createdAt : new Date(0);
+
     // 1. Calculate Streak (All-time)
-    const allHistory = await PlayHistory.find({ user: userId }).sort({ playedAt: -1 });
+    const allHistory = await PlayHistory.find({ 
+      user: userId,
+      playedAt: { $gte: userCreatedAt }
+    }).sort({ playedAt: -1 });
     
     let streak = 0;
     if (allHistory.length > 0) {
@@ -210,13 +216,15 @@ exports.getStats = async (req, res) => {
     }
 
     // 2. Filter by period
-    let startDate = new Date(0);
+    let startDate = userCreatedAt;
     if (period === 'week') {
-      startDate = new Date();
-      startDate.setDate(startDate.getDate() - 7);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      startDate = new Date(Math.max(weekAgo.getTime(), userCreatedAt.getTime()));
     } else if (period === 'month') {
-      startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 1);
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      startDate = new Date(Math.max(monthAgo.getTime(), userCreatedAt.getTime()));
     }
 
     const periodHistory = await PlayHistory.find({

@@ -3,9 +3,14 @@ const Artist = require('../models/Artist');
 exports.getArtist = async (req, res) => {
   try {
     const { id } = req.params;
-    const artist = await Artist.findById(id).populate('songs');
+    const artist = await Artist.findById(id).populate('songs').lean();
     if (!artist) {
       return res.status(404).json({ message: 'Artist not found' });
+    }
+    if (artist.songs) {
+      artist.songs = artist.songs.filter((song, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === song._id.toString())
+      );
     }
     res.json(artist);
   } catch (error) {

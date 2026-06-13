@@ -49,8 +49,29 @@ exports.generatePlaylist = async (req, res) => {
     
     res.status(201).json(newPlaylist);
   } catch (error) {
-    console.error('Error generating AI playlist:', error);
-    res.status(500).json({ message: 'Failed to generate smart playlist' });
+    console.error('Error generating AI playlist:', error.message || error);
+    try {
+      const userId = req.user.id;
+      const userPrompt = req.body.prompt;
+      console.log('Falling back to random playlist generation...');
+      const allSongs = await Song.find({});
+      if (allSongs.length === 0) throw new Error("No songs in catalog");
+      
+      const shuffled = allSongs.sort(() => 0.5 - Math.random());
+      const fallbackSongs = shuffled.slice(0, 6).map(s => s._id);
+      
+      const playlistName = userPrompt || `✨ Mix - ${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      const newPlaylist = await Playlist.create({
+        userId,
+        name: playlistName,
+        songs: fallbackSongs,
+        isAIGenerated: true
+      });
+      res.status(201).json(newPlaylist);
+    } catch (fallbackError) {
+      console.error('Fallback generation failed:', fallbackError.message || fallbackError);
+      res.status(500).json({ message: 'Failed to generate playlist and fallback failed: ' + (error.message || error.toString()) });
+    }
   }
 };
 
@@ -103,7 +124,17 @@ Pick 10 songs that fit the same vibe. Return ONLY a JSON array of song IDs. Do n
 
     res.json(orderedSongs);
   } catch (error) {
-    console.error('Error starting radio:', error);
-    res.status(500).json({ message: 'Failed to generate radio queue' });
+    console.error('Error starting radio:', error.message || error);
+    try {
+      console.log('Falling back to random radio queue...');
+      const allSongs = await Song.find({});
+      if (allSongs.length === 0) throw new Error("No songs in catalog");
+      const shuffled = allSongs.sort(() => 0.5 - Math.random());
+      const fallbackSongs = shuffled.slice(0, 10);
+      res.json(fallbackSongs);
+    } catch (fallbackError) {
+      console.error('Fallback radio failed:', fallbackError.message || fallbackError);
+      res.status(500).json({ message: 'Failed to generate radio queue: ' + (error.message || error.toString()) });
+    }
   }
 };

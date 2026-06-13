@@ -34,7 +34,14 @@ exports.getAllPlaylists = async (req, res) => {
     let playlistsQuery = Playlist.find(query).sort({ createdAt: -1 });
     if (limit) playlistsQuery = playlistsQuery.limit(parseInt(limit));
     
-    const playlists = await playlistsQuery.populate('songs');
+    const playlists = await playlistsQuery.populate('songs').lean();
+    playlists.forEach(p => {
+      if (p.songs) {
+        p.songs = p.songs.filter((song, index, self) =>
+          index === self.findIndex((t) => t._id.toString() === song._id.toString())
+        );
+      }
+    });
     res.json(playlists);
   } catch (error) {
     console.error('Error fetching playlists:', error);
@@ -45,8 +52,13 @@ exports.getAllPlaylists = async (req, res) => {
 exports.getPlaylist = async (req, res) => {
   try {
     const { id } = req.params;
-    const playlist = await Playlist.findById(id).populate('songs');
+    const playlist = await Playlist.findById(id).populate('songs').lean();
     if (!playlist) return res.status(404).json({ message: 'Playlist not found' });
+    if (playlist.songs) {
+      playlist.songs = playlist.songs.filter((song, index, self) =>
+        index === self.findIndex((t) => t._id.toString() === song._id.toString())
+      );
+    }
     res.json(playlist);
   } catch (error) {
     console.error('Error fetching playlist:', error);
