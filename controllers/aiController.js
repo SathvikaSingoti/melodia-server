@@ -26,7 +26,15 @@ exports.generatePlaylist = async (req, res) => {
       generationConfig: { responseMimeType: "application/json" }
     });
     
-    const result = await model.generateContent(prompt);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("AI Request Timed Out")), 5000)
+    );
+
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      timeoutPromise
+    ]);
+    
     let text = result.response.text();
     
     // Clean up response if needed
@@ -106,7 +114,15 @@ Pick 10 songs that fit the same vibe. Return ONLY a JSON array of song IDs. Do n
       generationConfig: { responseMimeType: "application/json" }
     });
 
-    const result = await model.generateContent(prompt);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("AI Request Timed Out")), 5000)
+    );
+
+    const result = await Promise.race([
+      model.generateContent(prompt),
+      timeoutPromise
+    ]);
+    
     let text = result.response.text();
 
     text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
