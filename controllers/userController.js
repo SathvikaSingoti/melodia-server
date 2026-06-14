@@ -307,7 +307,8 @@ exports.getStats = async (req, res) => {
 
     res.json({
       totalMinutes: Math.round(totalMinutes),
-      songsPlayed: validHistory.length,
+      totalPlays: validHistory.length,
+      uniqueTracks: Object.keys(songMap).length,
       topGenre,
       streak,
       genreBreakdown,
