@@ -107,7 +107,8 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 // GET /api/auth/google/callback
 router.get('/google/callback', passport.authenticate('google', { session: false, failureRedirect: '/login?error=auth_failed' }), (req, res) => {
   const token = generateToken(req.user._id);
-  res.redirect(`${process.env.CLIENT_URL}/auth/callback?token=${token}`);
+  const clientUrl = process.env.CLIENT_URL || 'https://melodia-client.vercel.app';
+  res.redirect(`${clientUrl}/auth/callback?token=${token}`);
 });
 
 // GET /api/auth/me
