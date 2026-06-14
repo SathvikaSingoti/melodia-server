@@ -242,8 +242,7 @@ exports.getStats = async (req, res) => {
     const heatMapData = Array.from({ length: 7 }, () => Array(24).fill(0));
 
     validHistory.forEach(h => {
-      const actualDuration = typeof h.duration === 'number' ? h.duration : h.song.duration;
-      const durationMins = actualDuration / 60;
+      const durationMins = (h.duration || h.song.duration) / 60;
       totalMinutes += durationMins;
 
       // Heatmap
