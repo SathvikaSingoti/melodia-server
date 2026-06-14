@@ -52,6 +52,7 @@ exports.generatePlaylist = async (req, res) => {
     const newPlaylist = await Playlist.create({
       userId,
       name: playlistName,
+      description: userPrompt ? `A smart playlist generated based on your prompt: "${userPrompt}"` : "An AI-generated smart playlist.",
       songs: suggestedSongIds,
       isAIGenerated: true
     });
@@ -73,6 +74,7 @@ exports.generatePlaylist = async (req, res) => {
       const newPlaylist = await Playlist.create({
         userId,
         name: playlistName,
+        description: userPrompt ? `A smart playlist generated based on your prompt: "${userPrompt}"` : "An AI-generated smart playlist.",
         songs: fallbackSongs,
         isAIGenerated: true
       });
