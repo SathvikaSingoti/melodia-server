@@ -69,13 +69,20 @@ exports.getPlaylist = async (req, res) => {
 exports.updatePlaylist = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, description, coverUrl } = req.body;
     
-    if (!name) return res.status(400).json({ message: 'Name is required' });
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (coverUrl !== undefined) updateData.coverUrl = coverUrl;
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'No fields to update' });
+    }
     
     const playlist = await Playlist.findByIdAndUpdate(
       id,
-      { name },
+      updateData,
       { new: true }
     ).populate('songs').lean();
     

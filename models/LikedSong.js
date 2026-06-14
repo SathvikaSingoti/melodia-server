@@ -15,5 +15,6 @@ const likedSongSchema = new mongoose.Schema({
 
 // Prevent duplicate likes for the same song by the same user
 likedSongSchema.index({ user: 1, song: 1 }, { unique: true });
+likedSongSchema.index({ user: 1 });
 
 module.exports = mongoose.model('LikedSong', likedSongSchema);

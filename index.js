@@ -38,7 +38,7 @@ app.use('/api/albums', require('./routes/albums'));
 // Health check
 app.use((req, res, next) => { res.on('finish', () => { if (res.statusCode === 404) console.log('404 Logger:', req.method, req.originalUrl); }); next(); });
 
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 

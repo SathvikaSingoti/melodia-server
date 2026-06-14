@@ -7,7 +7,26 @@ exports.getAlbum = async (req, res) => {
     if (!album) {
       return res.status(404).json({ message: 'Album not found' });
     }
-    res.json(album);
+    
+    // Find any extra songs by albumId in case the array isn't fully populated
+    const Song = require('../models/Song');
+    const extraSongs = await Song.find({ albumId: id });
+    const allSongs = [...(album.songs || []), ...extraSongs];
+    
+    // Deduplicate songs by ID
+    const uniqueSongs = Array.from(new Map(allSongs.map(s => [s._id.toString(), s])).values());
+    album.songs = uniqueSongs;
+
+    // Use first song's coverUrl if album coverUrl is missing
+    if (!album.coverUrl && uniqueSongs.length > 0 && uniqueSongs[0].coverUrl) {
+      album.coverUrl = uniqueSongs[0].coverUrl;
+    }
+    
+    // Using lean() or converting to object since we modified a mongoose document
+    const albumObj = album.toObject ? album.toObject() : album;
+    albumObj.songs = uniqueSongs;
+
+    res.json(albumObj);
   } catch (error) {
     console.error('Error fetching album:', error);
     res.status(500).json({ message: 'Server error' });

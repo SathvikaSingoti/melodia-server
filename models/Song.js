@@ -49,4 +49,8 @@ const songSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+songSchema.index({ genre: 1 });
+songSchema.index({ mood: 1 });
+songSchema.index({ title: 'text', artist: 'text' });
+
 module.exports = mongoose.model('Song', songSchema);

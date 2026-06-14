@@ -11,6 +11,10 @@ const playlistSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  description: {
+    type: String,
+    trim: true,
+  },
   coverUrl: {
     type: String,
   },
@@ -23,5 +27,7 @@ const playlistSchema = new mongoose.Schema({
     default: false,
   },
 }, { timestamps: true });
+
+playlistSchema.index({ userId: 1 });
 
 module.exports = mongoose.model('Playlist', playlistSchema);
