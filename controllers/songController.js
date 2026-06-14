@@ -24,6 +24,17 @@ exports.getSongs = async (req, res) => {
   }
 };
 
+exports.getSong = async (req, res) => {
+  try {
+    const song = await Song.findById(req.params.id);
+    if (!song) return res.status(404).json({ message: 'Song not found' });
+    res.json(song);
+  } catch (error) {
+    console.error('Error fetching song:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 exports.searchSongs = async (req, res) => {
   try {
     const { q } = req.query;
