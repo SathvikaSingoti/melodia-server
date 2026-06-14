@@ -93,14 +93,8 @@ exports.updateUser = async (req, res) => {
       const filename = `avatars/${userId}_${Date.now()}.jpg`;
 
       if (getApps().length === 0) {
-        // Local fallback if Firebase is not configured
-        const publicDir = path.join(__dirname, '../public');
-        const avatarsDir = path.join(publicDir, 'avatars');
-        if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir);
-        if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir);
-        
-        fs.writeFileSync(path.join(publicDir, filename), imageBuffer);
-        updateData.avatarUrl = `http://localhost:5000/${filename}`;
+        // Local fallback if Firebase is not configured: save base64 directly to database
+        updateData.avatarUrl = avatarBase64;
       } else {
         // Firebase upload
         const bucket = getStorage().bucket();
@@ -248,7 +242,8 @@ exports.getStats = async (req, res) => {
     const heatMapData = Array.from({ length: 7 }, () => Array(24).fill(0));
 
     validHistory.forEach(h => {
-      const durationMins = (h.duration || h.song.duration) / 60;
+      const actualDuration = typeof h.duration === 'number' ? h.duration : h.song.duration;
+      const durationMins = actualDuration / 60;
       totalMinutes += durationMins;
 
       // Heatmap
