@@ -145,7 +145,7 @@ exports.addHistory = async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const { songId, duration, playedAt } = req.body;
+    const { songId, duration, playedAt, listenedSeconds, completed } = req.body;
     if (!songId) {
       return res.status(400).json({ message: 'songId is required' });
     }
@@ -154,6 +154,8 @@ exports.addHistory = async (req, res) => {
       user: userId,
       song: songId,
       duration: duration || 0,
+      listenedSeconds: listenedSeconds || 0,
+      completed: completed || false,
       playedAt: playedAt ? new Date(playedAt) : new Date()
     });
 
@@ -187,16 +189,16 @@ exports.getStats = async (req, res) => {
       const datesPlayed = new Set(
         allHistory.map(h => {
           const d = new Date(h.playedAt);
-          return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+          return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
         })
       );
       
       const today = new Date();
-      const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+      const todayStr = `${today.getUTCFullYear()}-${today.getUTCMonth()}-${today.getUTCDate()}`;
       
       const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth()}-${yesterday.getDate()}`;
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+      const yesterdayStr = `${yesterday.getUTCFullYear()}-${yesterday.getUTCMonth()}-${yesterday.getUTCDate()}`;
       
       let checkDate = datesPlayed.has(todayStr) ? today : (datesPlayed.has(yesterdayStr) ? yesterday : null);
       
@@ -204,10 +206,10 @@ exports.getStats = async (req, res) => {
         let currentStreak = 0;
         let d = new Date(checkDate);
         while (true) {
-          const dStr = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+          const dStr = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
           if (datesPlayed.has(dStr)) {
             currentStreak++;
-            d.setDate(d.getDate() - 1);
+            d.setUTCDate(d.getUTCDate() - 1);
           } else {
             break;
           }
@@ -242,14 +244,15 @@ exports.getStats = async (req, res) => {
     const heatMapData = Array.from({ length: 7 }, () => Array(24).fill(0));
 
     validHistory.forEach(h => {
-      const durationMins = (h.duration || h.song.duration) / 60;
+      const listenedSecs = h.listenedSeconds || 0;
+      const durationMins = listenedSecs / 60;
       totalMinutes += durationMins;
 
       // Heatmap
       const d = new Date(h.playedAt);
       const day = d.getDay();
       const hour = d.getHours();
-      heatMapData[day][hour]++;
+      heatMapData[day][hour] += listenedSecs;
 
       // Genre
       const genre = h.song.genre || 'Unknown';
