@@ -79,13 +79,18 @@ exports.updateUser = async (req, res) => {
       return res.status(403).json({ message: 'Forbidden' });
     }
 
-    const { username, avatarBase64, favoriteGenres, favoriteArtists, onboardingCompleted } = req.body;
+    const { username, avatarBase64, favoriteGenres, favoriteArtists, onboardingCompleted, avatarUrl } = req.body;
     
     let updateData = {};
     if (username) updateData.username = username;
     if (favoriteGenres) updateData.favoriteGenres = favoriteGenres;
     if (favoriteArtists) updateData.favoriteArtists = favoriteArtists;
     if (typeof onboardingCompleted === 'boolean') updateData.onboardingCompleted = onboardingCompleted;
+    
+    // Support removing avatar
+    if (avatarUrl === null) {
+      updateData.avatarUrl = null;
+    }
     
     if (avatarBase64 && avatarBase64.startsWith('data:image')) {
       const base64EncodedImageString = avatarBase64.split(';base64,').pop();
